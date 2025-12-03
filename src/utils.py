@@ -1,5 +1,5 @@
-from itertools import product, chain
 import random
+from itertools import chain, product
 
 from src.models import Video
 
@@ -8,7 +8,9 @@ def get_video_combs(blocks: dict[str, list[str]]):
     return list(product(*blocks.values()))
 
 
-def get_random_audio(blocks: dict[str, list[str]], limit: int):
+def get_random_audio(
+    blocks: dict[str, list[str]], limit: int
+):
     t = tuple(chain(*blocks.values()))
     return [
         t[i % len(t)]
@@ -32,15 +34,25 @@ def get_setups(video_blocks, audio_blocks, speach_blocks):
             clips=videos[i],
             audio=audio[i],
             text=speach[i]["text"],
-            voice=speach[i]["voice"]
+            voice=speach[i]["voice"],
         )
         for i in range(len(videos))
     ]
 
 
-import json, os
+import json
+import os
 
-if __name__ == '__main__':
-    with open(os.path.join("test", "test1.json"), "r") as file:
+if __name__ == "__main__":
+    with open(
+        os.path.join("test", "test1.json"), "r"
+    ) as file:
         data = json.load(file)
-    print(*get_setups(data["video_blocks"], data["audio_blocks"], data["text_to_speach"]), sep="\n")
+    print(
+        *get_setups(
+            data["video_blocks"],
+            data["audio_blocks"],
+            data["text_to_speach"],
+        ),
+        sep="\n",
+    )
