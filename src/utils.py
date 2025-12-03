@@ -8,7 +8,7 @@ def flatten_blocks(blocks: BLOCKS):
 
 
 def get_url_info(blocks: BLOCKS):
-    for block_name, urls in blocks:
+    for block_name, urls in blocks.items():
         for index, url in enumerate(urls, 1):
             yield url, block_name, index
 
