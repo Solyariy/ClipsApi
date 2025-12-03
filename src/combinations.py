@@ -36,8 +36,7 @@ def get_video_setups(
         Video(
             clips=videos[i],
             audio=audio[i],
-            text=speach[i]["text"],
-            voice=speach[i]["voice"],
+            **speach[i]
         )
         for i in range(len(videos))
     ]
