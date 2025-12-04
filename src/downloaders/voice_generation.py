@@ -1,10 +1,10 @@
-import json
 from pathlib import Path
 
 from elevenlabs.client import AsyncElevenLabs
-from src.config import TEMP_PATH, ELEVENLABS_API_KEY, TEXT_TO_SPEACH, VOICES_PATH
+from src.config import TEMP_PATH, ELEVENLABS_API_KEY, TEXT_TO_SPEACH
 import httpx
-import aiofiles
+
+from src.utils import get_voice_id
 
 
 class TextToSpeechManager:
@@ -21,28 +21,13 @@ class TextToSpeechManager:
             httpx_client=client
         )
 
-    async def update_voices_info(self):
-        response = await self.elevenlabs.voices.get_all()
-        print(len(response.voices))
-        print(response.voices)
-        data = {
-            v.name: {
-                "voice_id": v.voice_id,
-                "model_ids": v.high_quality_base_model_ids
-            }
-            for v in response.voices
-        }
-        data = json.dumps(data)
-        async with aiofiles.open(VOICES_PATH, "w") as f:
-            await f.write(data)
-
     async def generate_speach(
             self,
             text: str,
             voice: str,
     ):
-        ...
-
+        voice_id = get_voice_id(voice)
+        print(voice_id)
 
     async def test(self):
         audio = self.elevenlabs.text_to_speech.stream(
@@ -59,10 +44,10 @@ class TextToSpeechManager:
 async def main():
     async with httpx.AsyncClient() as client:
         t = TextToSpeechManager(Path(__file__), [{"as": "as"}], client)
-        await t.update_voices_info()
+        await t.generate_speach("asd", "Sarah")
 
 
 import asyncio
+
 if __name__ == '__main__':
     asyncio.run(main())
-

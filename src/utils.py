@@ -1,6 +1,9 @@
+import json
 from itertools import chain
 
-from src.config import BLOCKS, VOICES_CACHE
+import aiofiles
+
+from src.config import BLOCKS, VOICES_PATH
 from urllib.parse import urlparse
 from pathlib import Path
 
@@ -19,5 +22,15 @@ def get_extension(url):
     return Path(urlparse(url).path).suffix.lower()
 
 
+class VoiceCache:
+    data = None
+
+    @classmethod
+    async def load_voices(cls):
+        async with aiofiles.open(VOICES_PATH, "r") as f:
+            data = await f.read()
+            cls.data = json.loads(data)
+
+
 def get_voice_id(name: str):
-    return VOICES_CACHE.get(name)
+    return VoiceCache.data.get(name)
