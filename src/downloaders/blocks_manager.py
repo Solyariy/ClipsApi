@@ -8,14 +8,12 @@ from pathlib import Path
 
 import httpx
 
-from src.config import BLOCKS, CHUNKS_SIZE, TEMP_PATH
-
-import tempfile
+from src.config import BLOCKS, CHUNKS_SIZE
 
 from src.utils import get_url_info, get_extension
 
 
-class MediaManager:
+class BlocksManager:
     def __init__(
             self,
             path: Path,

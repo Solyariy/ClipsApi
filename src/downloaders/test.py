@@ -4,7 +4,7 @@ import uuid
 import httpx
 
 from src.downloaders.dir_manager import DirManager
-from src.downloaders.media_manager import MediaManager
+from src.downloaders.blocks_manager import BlocksManager
 
 
 async def main():
@@ -12,7 +12,7 @@ async def main():
         with DirManager(
                 task_uuid=uuid.uuid4().hex,
         ) as dir_manager:
-            dm = MediaManager(
+            dm = BlocksManager(
                 dir_manager.path,
                 video_blocks={
                     "block1": [
