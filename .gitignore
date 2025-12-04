@@ -2,6 +2,8 @@
 .venv
 test
 src/temp/**
+.env
+src/downloaders/test.py
 
 
 

@@ -1,4 +1,5 @@
 import uuid
+from src.config import BLOCKS
 
 from pydantic import (
     UUID4,
@@ -13,8 +14,8 @@ class TaskPost(BaseModel):
         default_factory=lambda: uuid.uuid4().hex
     )
     task_name: str
-    video_blocks: dict[str, list[HttpUrl]]
-    audio_blocks: dict[str, list[HttpUrl]]
+    video_blocks: BLOCKS
+    audio_blocks: BLOCKS
     text_to_speach: list[dict[str, str]]
 
 
