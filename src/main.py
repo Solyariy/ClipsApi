@@ -1,3 +1,5 @@
+import asyncio
+
 import httpx
 from fastapi import FastAPI, Response, status, Request
 
@@ -29,10 +31,10 @@ def test():
     return get_voice_id("Sarah")
 
 
-@app.post("/update-voices")
+@app.put("/update-voices")
 async def update_voices(request: Request):
     await download_voices_info(request.app.state.httpx_client)
-    await VoiceCache.load_voices()
+    await asyncio.to_thread(VoiceCache.load_voices())
     return Response(status_code=status.HTTP_200_OK)
 
 
