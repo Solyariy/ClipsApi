@@ -1,16 +1,12 @@
 import asyncio
-import os
-import uuid
-
-import aiofiles
-import aiofiles.os
 from pathlib import Path
 
+import aiofiles
 import httpx
 
 from src.config import BLOCKS, CHUNKS_SIZE
 
-from src.utils import get_url_info, get_extension, flatten_blocks
+from src.utils import get_url_info, get_extension
 
 
 class BlocksManager:
@@ -34,11 +30,11 @@ class BlocksManager:
     ):
         extension = get_extension(url)
         filename = self.path / f"{block_name}_{file_index}{extension}"
-        # async with self.client.stream("GET", url=url) as response:
-        #     async with aiofiles.open(filename, "wb") as f:
-        #         iter_chunks = response.aiter_bytes(CHUNKS_SIZE)
-        #         async for chunk in iter_chunks:
-        #             await f.write(chunk)
+        async with self.client.stream("GET", url=str(url)) as response:
+            async with aiofiles.open(filename, "wb") as f:
+                iter_chunks = response.aiter_bytes(CHUNKS_SIZE)
+                async for chunk in iter_chunks:
+                    await f.write(chunk)
         return block_name, filename, extension
 
     async def gather_tasks(self):

@@ -1,13 +1,11 @@
 import uuid
 from os import PathLike
 
-from src.config import BLOCKS
-
 from pydantic import (
     UUID4,
     BaseModel,
     Field,
-    FilePath
+    HttpUrl
 )
 
 
@@ -16,12 +14,12 @@ class TaskPost(BaseModel):
         default_factory=lambda: uuid.uuid4().hex
     )
     task_name: str
-    video_blocks: BLOCKS
-    audio_blocks: BLOCKS
+    video_blocks: dict[str, list[HttpUrl]]
+    audio_blocks: dict[str, list[HttpUrl]]
     text_to_speach: list[dict[str, str]]
 
 
-class Video(BaseModel):
+class VideoSetup(BaseModel):
     uuid_: str = Field(
         default_factory=lambda: uuid.uuid4().hex
     )

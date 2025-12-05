@@ -10,6 +10,7 @@ dependencies = [
     "elevenlabs>=2.25.0",
     "fastapi[standard]>=0.123.5",
     "isort>=7.0.0",
+    "moviepy>=2.2.1",
     "pydantic>=2.12.5",
     "python-dotenv>=1.2.1",
     "uvicorn>=0.38.0",

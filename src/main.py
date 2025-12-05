@@ -1,10 +1,12 @@
 import asyncio
+import json
 
 import httpx
 from fastapi import FastAPI, Response, status, Request
 
+from src.config import TEMP_PATH, DEBUG
 from src.utils import get_voice_info, VoiceCache
-from src.models import TaskPost
+from src.models import TaskPost, VideoSetup
 from contextlib import asynccontextmanager
 from src.scripts import download_voices_info
 from src.downloaders import TextToSpeechManager, BlocksManager, DirManager
@@ -13,10 +15,13 @@ from src.videos.combinations import get_video_setups
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    if DEBUG:
+        print("DEBUGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG")
     async with httpx.AsyncClient() as client:
         await download_voices_info(client=client)
         VoiceCache.load_voices()
         app.state.httpx_client = client
+        app.state.speach_semaphore = asyncio.Semaphore(2)
         yield
 
 
@@ -43,11 +48,13 @@ async def update_voices(request: Request):
 @app.post("/process_media")
 async def post_process_media(task: TaskPost, request: Request):
     client = request.app.state.httpx_client
+    semaphore = request.app.state.speach_semaphore
     async with DirManager(task_uuid=task.uuid_) as dir_manager:
         speach_manager = TextToSpeechManager(
             path=dir_manager.path,
             text_to_speach=task.text_to_speach,
-            client=client
+            client=client,
+            semaphore=semaphore
         )
         blocks_manager = BlocksManager(
             path=dir_manager.path,
@@ -60,14 +67,24 @@ async def post_process_media(task: TaskPost, request: Request):
 
         print(f"SUCCESS_SPEACH\n{successes_speach}\n")
         print(f"failures_speach\n{failures_speach}\n")
+        for e in failures_speach:
+            print(f"\n{e}\n")
+
         print(f"successes_blocks\n{successes_blocks}\n")
         print(f"failures_blocks\n{failures_blocks}\n")
+        for e in failures_blocks:
+            print(f"\n{e}\n")
 
-
-        videos = get_video_setups(
+        video_setups: list[VideoSetup] = get_video_setups(
             video_blocks=successes_blocks["video_blocks"],
             audio_blocks=successes_blocks["audio_blocks"],
             speach_blocks=list(successes_speach.values())
         )
-        print(f"VIDEOS\n{videos}\n")
-    return videos
+        print(f"VIDEOS\n{video_setups}\n")
+    data = [
+        setup.model_dump()
+        for setup in video_setups
+    ]
+    with open(TEMP_PATH / "test_video_setups.json", "w") as f:
+        json.dump(data, f)
+    return data

@@ -2,7 +2,7 @@ import random
 from itertools import product
 from os import PathLike
 
-from src.models import Video
+from src.models import VideoSetup
 from src.utils import flatten_blocks
 
 
@@ -34,7 +34,7 @@ def get_video_setups(
     audio = get_random_audio(audio_blocks, len(videos))
     speach = get_random_speach(speach_blocks, len(videos))
     return [
-        Video(
+        VideoSetup(
             clips_path=videos[i],
             audio_path=audio[i],
             **speach[i]
