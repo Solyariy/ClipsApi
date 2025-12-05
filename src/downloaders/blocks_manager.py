@@ -24,9 +24,6 @@ class BlocksManager:
         self.path = path
         self.video_blocks = video_blocks
         self.audio_blocks = audio_blocks
-        self.temp_video_blocks = {}
-        self.temp_audio_blocks = {}
-
         self.client = client
 
     async def download_file(
@@ -37,11 +34,11 @@ class BlocksManager:
     ):
         extension = get_extension(url)
         filename = self.path / f"{block_name}_{file_index}{extension}"
-        async with self.client.stream("GET", url=url) as response:
-            async with aiofiles.open(filename, "wb") as f:
-                iter_chunks = response.aiter_bytes(CHUNKS_SIZE)
-                async for chunk in iter_chunks:
-                    await f.write(chunk)
+        # async with self.client.stream("GET", url=url) as response:
+        #     async with aiofiles.open(filename, "wb") as f:
+        #         iter_chunks = response.aiter_bytes(CHUNKS_SIZE)
+        #         async for chunk in iter_chunks:
+        #             await f.write(chunk)
         return block_name, filename, extension
 
     async def gather_tasks(self):
@@ -59,6 +56,7 @@ class BlocksManager:
         for result in results:
             if isinstance(result, Exception):
                 failures.append(result)
+                continue
             block_name, filename, extension = result
             if extension == ".mp4":
                 temp_video_blocks[block_name].append(filename)

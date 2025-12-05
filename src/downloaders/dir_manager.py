@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import aiofiles
 
 from src.config import TEMP_PATH
@@ -14,7 +16,8 @@ class DirManager:
             dir=TEMP_PATH,
             suffix=self.task_uuid
         )
-        self.path = await self._temp_dir.__aenter__()
+        path = await self._temp_dir.__aenter__()
+        self.path = Path(path)
         return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):

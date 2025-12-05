@@ -1,5 +1,6 @@
 import random
 from itertools import product
+from os import PathLike
 
 from src.models import Video
 from src.utils import flatten_blocks
@@ -19,7 +20,7 @@ def get_random_audio(
     ]
 
 
-def get_random_speach(blocks: list[dict[str, str]], limit):
+def get_random_speach(blocks: list[dict[str, str | PathLike]], limit):
     return [
         blocks[i % len(blocks)]
         for i in random.sample(range(limit * 2), limit)
@@ -34,8 +35,8 @@ def get_video_setups(
     speach = get_random_speach(speach_blocks, len(videos))
     return [
         Video(
-            clips=videos[i],
-            audio=audio[i],
+            clips_path=videos[i],
+            audio_path=audio[i],
             **speach[i]
         )
         for i in range(len(videos))

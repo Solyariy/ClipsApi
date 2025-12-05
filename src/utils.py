@@ -20,7 +20,7 @@ def get_url_info(blocks: BLOCKS):
 
 
 def get_extension(url):
-    return Path(urlparse(url).path).suffix.lower()
+    return Path(urlparse(str(url)).path).suffix.lower()
 
 
 class VoiceCache:
