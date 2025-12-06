@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-DEBUG = bool(os.getenv("DEBUG"))
+DEBUG = bool(int(os.getenv("DEBUG")))
 
 TEMP_PATH = Path(__file__).parent / "temp"
 VOICES_PATH = TEMP_PATH / "voices.json"

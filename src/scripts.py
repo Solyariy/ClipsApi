@@ -3,12 +3,18 @@ import json
 import aiofiles
 import httpx
 from elevenlabs.client import AsyncElevenLabs
+from fastapi import HTTPException, status
 
 from src.config import VOICES_PATH
 
 
 async def download_voices_info(client: httpx.AsyncClient):
     response = await AsyncElevenLabs(httpx_client=client).voices.get_all()
+    if not response.voices:
+        raise HTTPException(
+            status_code=status.HTTP_406_NOT_ACCEPTABLE,
+            detail="Server was not able to download voices info from Elevenlabs api"
+        )
     data = {
         v.name: {
             "voice_id": v.voice_id,
