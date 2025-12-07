@@ -12,6 +12,7 @@ dependencies = [
     "elevenlabs>=2.25.0",
     "fastapi[standard]>=0.123.5",
     "flower>=2.0.1",
+    "google-cloud-storage[tracing]>=3.6.0",
     "isort>=7.0.0",
     "loguru>=0.7.3",
     "moviepy>=2.2.1",

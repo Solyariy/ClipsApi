@@ -1,13 +1,14 @@
 import asyncio
 import json
-from fastapi import Response, status, Request, APIRouter, Body
+from fastapi import Response, status, Request, APIRouter, Body, Depends
 from loguru import logger
 
 from src.api.celery_worker import create_task
+from src.api.dependecies import get_httpx_client, get_speach_semaphore
 from src.config import TEMP_PATH
 from src.utils import get_voice_info, VoiceCache
 from src.models import TaskPost, VideoSetup
-from src.scripts import download_voices_info
+from src.downloaders.scripts import download_voices_info
 from src.downloaders import TextToSpeechManager, BlocksManager, DirManager
 from src.videos.combinations import get_video_setups
 
@@ -25,6 +26,7 @@ def test():
     logger.debug("test get voice info")
     return get_voice_info("Sarah")
 
+
 @router.post("/celery_test")
 def celery_test(data=Body(...)):
     delay = int(data["delay"])
@@ -32,17 +34,20 @@ def celery_test(data=Body(...)):
     task = create_task.delay(delay, x, y)
     return {"Task": "Success"}
 
+
 @router.put("/update-voices")
-async def update_voices(request: Request):
-    await download_voices_info(request.app.state.httpx_client)
+async def update_voices(client=Depends(get_httpx_client)):
+    await download_voices_info(client)
     await asyncio.to_thread(VoiceCache.load_voices())
     return Response(status_code=status.HTTP_200_OK)
 
 
 @router.post("/process_media")
-async def post_process_media(task: TaskPost, request: Request):
-    client = request.app.state.httpx_client
-    semaphore = request.app.state.speach_semaphore
+async def post_process_media(
+        task: TaskPost,
+        client=Depends(get_httpx_client),
+        semaphore=Depends(get_speach_semaphore)
+):
     async with DirManager(task_uuid=task.uuid_) as dir_manager:
         speach_manager = TextToSpeechManager(
             path=dir_manager.path,

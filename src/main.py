@@ -5,10 +5,11 @@ import httpx
 # import uvicorn
 from fastapi import FastAPI
 from loguru import logger
-from src.config import DEBUG
+from google.cloud.storage import Client
+from src.config import DEBUG, GOOGLE_APPLICATION_CREDENTIALS, GOOGLE_STORAGE_BUCKET_NAME
 from src.utils import VoiceCache
 from contextlib import asynccontextmanager
-from src.scripts import download_voices_info
+from src.downloaders.scripts import download_voices_info
 from src.api.main_router import router as main_router
 
 logger.remove()
@@ -51,9 +52,12 @@ async def lifespan(app: FastAPI):
     async with httpx.AsyncClient() as client:
         await download_voices_info(client=client)
         VoiceCache.load_voices()
+        gcs_client = Client.from_service_account_json(GOOGLE_APPLICATION_CREDENTIALS)
+        app.state.gcs_bucket = gcs_client.bucket(GOOGLE_STORAGE_BUCKET_NAME)
         app.state.httpx_client = client
         app.state.speach_semaphore = asyncio.Semaphore(2)
         yield
+        gcs_client.close()
 
 
 app = FastAPI(lifespan=lifespan)
