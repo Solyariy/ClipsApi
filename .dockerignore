@@ -8,3 +8,4 @@ __pycache__
 README.md
 Dockerfile
 docker-compose.yaml
+test

@@ -5,7 +5,7 @@ import httpx
 from elevenlabs.client import AsyncElevenLabs
 from fastapi import HTTPException, status
 
-from src.config import VOICES_PATH
+from src.settings import config
 
 
 async def download_voices_info(client: httpx.AsyncClient):
@@ -23,5 +23,5 @@ async def download_voices_info(client: httpx.AsyncClient):
         for v in response.voices
     }
     data = json.dumps(data)
-    async with aiofiles.open(VOICES_PATH, "w") as f:
+    async with aiofiles.open(config.VOICES_PATH, "w") as f:
         await f.write(data)

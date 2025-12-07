@@ -7,7 +7,7 @@ from moviepy import (
     concatenate_videoclips, concatenate_audioclips,
 )
 
-from src.config import TEMP_PATH
+from src.settings import config
 from src.models import VideoSetup
 
 
@@ -68,15 +68,15 @@ class VideoProcessor:
 if __name__ == "__main__":
     setup = VideoSetup(
         clips_path=(
-            TEMP_PATH / "fa06f67fe765436ab8029bb90799f901/block1_1.mp4",
-            TEMP_PATH / "fa06f67fe765436ab8029bb90799f901/block2_3.mp4",
-            TEMP_PATH / "fa06f67fe765436ab8029bb90799f901/block3_1.mp4",
+            config.TEMP_PATH / "fa06f67fe765436ab8029bb90799f901/block1_1.mp4",
+            config.TEMP_PATH / "fa06f67fe765436ab8029bb90799f901/block2_3.mp4",
+            config.TEMP_PATH / "fa06f67fe765436ab8029bb90799f901/block3_1.mp4",
         ),
-        audio_path=TEMP_PATH / "fa06f67fe765436ab8029bb90799f901/audio1_1.mp3",
-        speach_path=TEMP_PATH / "fa06f67fe765436ab8029bb90799f901/be4b86b7dad84219864100027b48e7a7_Will.mp3",
+        audio_path=config.TEMP_PATH / "fa06f67fe765436ab8029bb90799f901/audio1_1.mp3",
+        speach_path=config.TEMP_PATH / "fa06f67fe765436ab8029bb90799f901/be4b86b7dad84219864100027b48e7a7_Will.mp3",
         text="asds",
         voice="asdasd"
     )
 
-    p = VideoProcessor(TEMP_PATH / "test_full_video_1.mp4", [setup])
+    p = VideoProcessor(config.TEMP_PATH / "test_full_video_1.mp4", [setup])
     p.start_processing()

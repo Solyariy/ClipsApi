@@ -1,12 +1,12 @@
 from celery import Celery
 import time
 
-from src.config import CELERY_BROKER_URL, CELERY_RESULT_BACKEND
+from src.settings import celery_settings
 
 celery_app = Celery(
     __name__,
-    broker=CELERY_BROKER_URL,
-    backend=CELERY_RESULT_BACKEND,
+    broker=celery_settings.BROKER_URL,
+    backend=celery_settings.RESULT_BACKEND,
 )
 
 

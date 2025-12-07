@@ -6,14 +6,14 @@ import httpx
 from fastapi import FastAPI
 from loguru import logger
 from google.cloud.storage import Client
-from src.config import DEBUG, GOOGLE_APPLICATION_CREDENTIALS, GOOGLE_STORAGE_BUCKET_NAME
+from src.settings import config, google_settings
 from src.utils import VoiceCache
 from contextlib import asynccontextmanager
 from src.downloaders.scripts import download_voices_info
 from src.api.main_router import router as main_router
 
 logger.remove()
-if DEBUG:
+if config.DEBUG:
     logger.add(sys.stdout)
 else:
     logger.add(sys.stdout, serialize=True)
@@ -47,13 +47,17 @@ for name in logging.root.manager.loggerDict:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    if DEBUG:
+    if config.DEBUG:
         logger.debug("DEBUG mode")
     async with httpx.AsyncClient() as client:
         await download_voices_info(client=client)
         VoiceCache.load_voices()
-        gcs_client = Client.from_service_account_json(GOOGLE_APPLICATION_CREDENTIALS)
-        app.state.gcs_bucket = gcs_client.bucket(GOOGLE_STORAGE_BUCKET_NAME)
+        gcs_client = Client.from_service_account_json(
+            google_settings.GOOGLE_APPLICATION_CREDENTIALS
+        )
+        app.state.gcs_bucket = gcs_client.bucket(
+            google_settings.GOOGLE_STORAGE_BUCKET_NAME
+        )
         app.state.httpx_client = client
         app.state.speach_semaphore = asyncio.Semaphore(2)
         yield

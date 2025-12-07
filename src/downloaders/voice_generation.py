@@ -5,7 +5,7 @@ from pathlib import Path
 import aiofiles
 from elevenlabs import VoiceSettings
 from elevenlabs.client import AsyncElevenLabs
-from src.config import ELEVENLABS_API_KEY, TEXT_TO_SPEACH, ELEVENLABS_MODEL_ID, ELEVENLABS_OUTPUT_FORMAT, TEMP_PATH
+from src.settings import config, elevenlabs_settings
 import httpx
 
 from src.utils import get_voice_info
@@ -15,7 +15,7 @@ class TextToSpeechManager:
     def __init__(
             self,
             path: Path,
-            text_to_speach: TEXT_TO_SPEACH,
+            text_to_speach: config.TEXT_TO_SPEACH,
             client: httpx.AsyncClient,
             semaphore: asyncio.Semaphore
     ):
@@ -25,7 +25,7 @@ class TextToSpeechManager:
             for data in text_to_speach
         }
         self.elevenlabs = AsyncElevenLabs(
-            api_key=ELEVENLABS_API_KEY,
+            api_key=elevenlabs_settings.API_KEY,
             httpx_client=client,
         )
         self.semaphore = semaphore
@@ -38,17 +38,17 @@ class TextToSpeechManager:
     ):
         async with self.semaphore:
             voice_info = get_voice_info(voice)
-            if ELEVENLABS_MODEL_ID not in voice_info["model_ids"]:
+            if elevenlabs_settings.MODEL_ID not in voice_info["model_ids"]:
                 raise ValueError(
-                    f"Can't use model: {ELEVENLABS_MODEL_ID} "
+                    f"Can't use model: {elevenlabs_settings.MODEL_ID} "
                     f"for this voice: {voice_info}"
                 )
             audio = self.elevenlabs.text_to_speech.stream(
                 voice_id=voice_info["voice_id"],
                 text=text,
                 language_code="en",
-                model_id=ELEVENLABS_MODEL_ID,
-                output_format=ELEVENLABS_OUTPUT_FORMAT,
+                model_id=elevenlabs_settings.MODEL_ID,
+                output_format=elevenlabs_settings.MODEL_ID,
                 voice_settings=VoiceSettings(
                     stability=0.0,
                     similarity_boost=1.0,

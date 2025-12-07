@@ -4,7 +4,7 @@ from pathlib import Path
 import aiofiles
 import httpx
 
-from src.config import BLOCKS, CHUNKS_SIZE
+from src.settings import config
 
 from src.utils import get_url_info, get_extension
 
@@ -13,8 +13,8 @@ class BlocksManager:
     def __init__(
             self,
             path: Path,
-            video_blocks: BLOCKS,
-            audio_blocks: BLOCKS,
+            video_blocks: config.BLOCKS,
+            audio_blocks: config.BLOCKS,
             client: httpx.AsyncClient
     ):
         self.path = path
@@ -32,7 +32,7 @@ class BlocksManager:
         filename = self.path / f"{block_name}_{file_index}{extension}"
         async with self.client.stream("GET", url=str(url)) as response:
             async with aiofiles.open(filename, "wb") as f:
-                iter_chunks = response.aiter_bytes(CHUNKS_SIZE)
+                iter_chunks = response.aiter_bytes(config.CHUNKS_SIZE)
                 async for chunk in iter_chunks:
                     await f.write(chunk)
         return block_name, filename, extension

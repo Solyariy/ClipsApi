@@ -5,7 +5,7 @@ from loguru import logger
 
 from src.api.celery_worker import create_task
 from src.api.dependecies import get_httpx_client, get_speach_semaphore
-from src.config import TEMP_PATH
+from src.settings import config
 from src.utils import get_voice_info, VoiceCache
 from src.models import TaskPost, VideoSetup
 from src.downloaders.scripts import download_voices_info
@@ -84,6 +84,6 @@ async def post_process_media(
         setup.model_dump()
         for setup in video_setups
     ]
-    with open(TEMP_PATH / "test_video_setups.json", "w") as f:
+    with open(config.TEMP_PATH / "test_video_setups.json", "w") as f:
         json.dump(data, f)
     return data

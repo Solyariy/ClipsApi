@@ -41,25 +41,3 @@ def get_video_setups(
         )
         for i in range(len(videos))
     ]
-
-
-import json
-from pathlib import Path
-
-if __name__ == "__main__":
-    path = (
-            Path(__file__).resolve().parents[1]
-            / "test"
-            / "test1.json"
-    )
-    print(path)
-    with open(path, "r") as file:
-        data = json.load(file)
-    print(
-        *get_video_setups(
-            data["video_blocks"],
-            data["audio_blocks"],
-            data["text_to_speach"],
-        ),
-        sep="\n",
-    )

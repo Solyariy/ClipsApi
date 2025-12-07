@@ -1,16 +1,16 @@
 import json
 from itertools import chain
 
-from src.config import BLOCKS, VOICES_PATH
+from src.settings import config
 from urllib.parse import urlparse
 from pathlib import Path
 
 
-def flatten_blocks(blocks: BLOCKS):
+def flatten_blocks(blocks: config.BLOCKS):
     yield from chain(*blocks.values())
 
 
-def get_url_info(blocks: BLOCKS):
+def get_url_info(blocks: config.BLOCKS):
     for block_name, urls in blocks.items():
         for index, url in enumerate(urls, 1):
             yield url, block_name, index
@@ -25,7 +25,7 @@ class VoiceCache:
 
     @classmethod
     def load_voices(cls):
-        with open(VOICES_PATH, "r") as f:
+        with open(config.VOICES_PATH, "r") as f:
             cls.data = json.load(f)
 
     @classmethod
