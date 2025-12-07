@@ -18,6 +18,10 @@ TEXT_TO_SPEACH = Annotated[
     list[dict[str, str]], "text and voice setups"
 ]
 CHUNKS_SIZE = 1024 * 128
+
 ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY")
 ELEVENLABS_MODEL_ID = "eleven_multilingual_v2"
 ELEVENLABS_OUTPUT_FORMAT = "mp3_44100_128"
+
+CELERY_BROKER_URL=os.getenv("CELERY_BROKER_URL")
+CELERY_RESULT_BACKEND=os.getenv("CELERY_RESULT_BACKEND")

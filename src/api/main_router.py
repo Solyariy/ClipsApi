@@ -1,7 +1,9 @@
 import asyncio
 import json
-from fastapi import Response, status, Request, APIRouter
+from fastapi import Response, status, Request, APIRouter, Body
 from loguru import logger
+
+from src.api.celery_worker import create_task
 from src.config import TEMP_PATH
 from src.utils import get_voice_info, VoiceCache
 from src.models import TaskPost, VideoSetup
@@ -14,14 +16,21 @@ router = APIRouter(prefix="/api/v1")
 
 @router.get("/")
 def root():
-    logger.info("root endpoint")
+    logger.debug("root endpoint")
     return Response(status_code=status.HTTP_200_OK)
 
 
 @router.get("/test")
 def test():
+    logger.debug("test get voice info")
     return get_voice_info("Sarah")
 
+@router.post("/celery_test")
+def celery_test(data=Body(...)):
+    delay = int(data["delay"])
+    x, y = int(data["x"]), int(data["y"])
+    task = create_task.delay(delay, x, y)
+    return {"Task": "Success"}
 
 @router.put("/update-voices")
 async def update_voices(request: Request):
@@ -50,13 +59,13 @@ async def post_process_media(task: TaskPost, request: Request):
         successes_speach, failures_speach = await speach_manager.gather_tasks()
         successes_blocks, failures_blocks = await blocks_manager.gather_tasks()
 
-        logger.info(f"SUCCESS_SPEACH\n{successes_speach}\n")
-        logger.info(f"failures_speach\n{failures_speach}\n")
+        logger.debug(f"SUCCESS_SPEACH\n{successes_speach}\n")
+        logger.debug(f"failures_speach\n{failures_speach}\n")
         for e in failures_speach:
-            logger.info(f"\n{e}\n")
+            logger.debug(f"\n{e}\n")
 
-        logger.info(f"successes_blocks\n{successes_blocks}\n")
-        logger.info(f"failures_blocks\n{failures_blocks}\n")
+        logger.debug(f"successes_blocks\n{successes_blocks}\n")
+        logger.debug(f"failures_blocks\n{failures_blocks}\n")
         for e in failures_blocks:
             logger.info(f"\n{e}\n")
 
@@ -65,7 +74,7 @@ async def post_process_media(task: TaskPost, request: Request):
             audio_blocks=successes_blocks["audio_blocks"],
             speach_blocks=list(successes_speach.values())
         )
-        logger.info(f"VIDEOS\n{video_setups}\n")
+        logger.debug(f"VIDEOS\n{video_setups}\n")
     data = [
         setup.model_dump()
         for setup in video_setups
