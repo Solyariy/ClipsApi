@@ -2,6 +2,8 @@ import random
 from itertools import product
 from os import PathLike
 
+from loguru import logger
+
 from src.models import VideoSetup
 from src.utils import flatten_blocks
 
@@ -28,11 +30,19 @@ def get_random_speach(blocks: list[dict[str, str | PathLike]], limit):
 
 
 def get_video_setups(
-        video_blocks, audio_blocks, speach_blocks
+        video_blocks,
+        audio_blocks,
+        speach_blocks,
 ):
+    logger.info(f"VIDEO BLOCKS: {video_blocks}")
+    logger.info(f"AUDIO BLOCKS: {audio_blocks}")
+    logger.info(f"SPEACH BLOCKS: {speach_blocks}")
     videos = get_video_combs(video_blocks)
     audio = get_random_audio(audio_blocks, len(videos))
     speach = get_random_speach(speach_blocks, len(videos))
+    logger.info(f"VIDEO COMBS: {videos}")
+    logger.info(f"AUDIO COMBS: {audio}")
+    logger.info(f"SPEACH COMBS: {speach}")
     return [
         VideoSetup(
             clips_path=videos[i],

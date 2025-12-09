@@ -1,10 +1,10 @@
 import asyncio
-
-import google.cloud.storage
+from typing import Literal
+from time import perf_counter
 import httpx
-from celery import group
+from celery import group, chain
 from loguru import logger
-from src.api.utils import get_all_managers_kwargs
+from src.api.utils import get_all_managers_kwargs, get_gcs_bucket
 from src.downloaders import DirManager, TextToSpeechManager, BlocksManager
 from src.downloaders.download_all_files import download_all_files
 from src.models import VideoSetup, TaskPost
@@ -15,59 +15,96 @@ from src.videos.video_processor import VideoProcessor
 from src.api.celery_worker import celery_app
 
 
-@celery_app.task(name="download_all_files_task")
-async def download_and_make_setups_task(
+@celery_app.task(name="download_files_task")
+def download_files_task(
+        task_uuid: str,
         speach_kwargs: dict,
         blocks_kwargs: dict
-) -> list[dict[str, ...]]:
-    speach_manager = TextToSpeechManager(**speach_kwargs)
-    blocks_manager = BlocksManager(**blocks_kwargs)
-    results = await download_all_files(speach_manager, blocks_manager)
-    video_setups: list[VideoSetup] = get_video_setups(
-        video_blocks=results["successes_blocks"]["video_blocks"],
-        audio_blocks=results["successes_blocks"]["audio_blocks"],
-        speach_blocks=list(results["successes_speach"].values())
+) -> dict[Literal["successes_blocks", "successes_speach"], dict]:
+    logger.info(f"DOWNLOADING FILES FOR TASK: {task_uuid}")
+    start = perf_counter()
+
+    async def _do_download():
+        async with httpx.AsyncClient() as client:
+            speach_manager = TextToSpeechManager(client=client, semaphore=asyncio.Semaphore(2), **speach_kwargs)
+            blocks_manager = BlocksManager(client=client, **blocks_kwargs)
+            results = await download_all_files(speach_manager, blocks_manager)
+        return results
+
+    logger.info(
+        f"FINISHED DOWNLOADING FILES FOR TASK: {task_uuid}, "
+        f"TIME: {perf_counter() - start} s"
     )
-    return [setup.model_dump() for setup in video_setups]
+    return asyncio.run(_do_download())
 
 
-@celery_app.task(name="process_setup")
+@celery_app.task(name="process_setup_task")
 def process_setup_task(
         processor_kwargs: dict,
         storage_kwargs: dict,
         setup_kwargs: dict
 ) -> str:
+    bucket = get_gcs_bucket()  # probably bottleneck
+
+    start = perf_counter()
     setup = VideoSetup(**setup_kwargs)
-    logger.debug(f"STARTED PROCESSING SETUP: {setup.uuid_}")
+    logger.info(f"STARTED PROCESSING SETUP: {setup.uuid_}")
     processor = VideoProcessor(**processor_kwargs)
-    storage_manager = StorageManager(**storage_kwargs)
+    storage_manager = StorageManager(bucket=bucket, **storage_kwargs)
     saved_url = process_setup(processor, storage_manager, setup)
-    logger.debug(f"FINISHED PROCESSING SETUP: {setup.uuid_}")
+    logger.info(
+        f"FINISHED PROCESSING SETUP: {setup.uuid_}"
+        f"TIME: {perf_counter() - start} s"
+    )
     return saved_url
 
 
-@celery_app.task(name="process_all_setups_task")
-async def process_all_setups_task(
+@celery_app.task(name="group_and_process_task")
+def group_and_process_task(
+        download_results: dict,
+        task_uuid: str,
+        processor_kwargs: dict,
+        storage_kwargs: dict
+):
+    logger.info(f"DOWNLOAD RESULTS FOR TASK: {task_uuid} \n{download_results}")
+    video_setups: list[VideoSetup] = get_video_setups(
+        video_blocks=download_results["successes_blocks"]["video_blocks"],
+        audio_blocks=download_results["successes_blocks"]["audio_blocks"],
+        speach_blocks=list(download_results["successes_speach"].values())
+    )
+    all_processors = group(
+        process_setup_task.s(
+            processor_kwargs=processor_kwargs,
+            storage_kwargs=storage_kwargs,
+            setup_kwargs=setup.model_dump(mode="json")
+        )
+        for setup in video_setups
+    )
+    all_processors.delay()
+
+
+@celery_app.task(name="process_download_all_setups_task")
+def process_download_all_setups_task(
         task_kwargs: dict,
-        client: httpx.AsyncClient,
-        semaphore: asyncio.Semaphore,
-        bucket: google.cloud.storage.Bucket,
 ):
     task = TaskPost(**task_kwargs)
-    async with DirManager(task_uuid=task.uuid_) as dir_manager:
+    logger.info(f"START process_download_all_setups_task: {task.uuid_}")
+    with DirManager(task_uuid=task.uuid_) as dir_manager:
         speach_kwargs, blocks_kwargs, storage_kwargs, processor_kwargs = get_all_managers_kwargs(
-            task, dir_manager.path, client, semaphore, bucket
+            task, dir_manager.path,
         )
-        setups_job = download_and_make_setups_task.delay(
-            speach_kwargs, blocks_kwargs
-        )
-        setups_kwargs = setups_job.get(timeout=10)
-        all_processors = group(
-            process_setup_task.s(
+        logger.info(f"KWARGS: {speach_kwargs, blocks_kwargs, storage_kwargs, processor_kwargs}")
+
+        job = chain(
+            download_files_task.s(
+                task_uuid=task.uuid_,
+                speach_kwargs=speach_kwargs,
+                blocks_kwargs=blocks_kwargs
+            ),
+            group_and_process_task.s(
+                task_uuid=task.uuid_,
                 processor_kwargs=processor_kwargs,
-                storage_kwargs=storage_kwargs,
-                setup_kwargs=setup
+                storage_kwargs=storage_kwargs
             )
-            for setup in setups_kwargs
         )
-        all_processors.delay()
+        job.delay()

@@ -1,22 +1,29 @@
+import asyncio
+
 from loguru import logger
 
 
 async def download_all_files(
         speach_manager,
         blocks_manager
-):
-    successes_speach, failures_speach = await speach_manager.gather_tasks()
-    successes_blocks, failures_blocks = await blocks_manager.gather_tasks()
+) -> dict:
+    results = await asyncio.gather(
+        speach_manager.gather_tasks(),
+        blocks_manager.gather_tasks()
+    )
+    logger.info(f"RESULTS {results}")
+    successes_speach, failures_speach = results[0]
+    successes_blocks, failures_blocks = results[1]
 
-    logger.debug(f"SUCCESS SPEACH: {successes_speach}")
+    logger.info(f"SUCCESS SPEACH: {successes_speach}")
     if failures_speach:
-        logger.debug(f"FAILURE SPEACH: {failures_speach}")
+        logger.warning(f"FAILURE SPEACH: {failures_speach}")
         for e in failures_speach:
             logger.warning(f"\n{e}\n")
 
-    logger.debug(f"SUCCESS BLOCKS: {successes_blocks}")
+    logger.info(f"SUCCESS BLOCKS: {successes_blocks}")
     if failures_blocks:
-        logger.debug(f"FAILURE BLOCKS: {failures_blocks}")
+        logger.warning(f"FAILURE BLOCKS: {failures_blocks}")
         for e in failures_blocks:
             logger.warning(f"\n{e}\n")
 

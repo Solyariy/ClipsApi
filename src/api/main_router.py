@@ -3,9 +3,8 @@ import json
 from fastapi import Response, status, APIRouter, Body, Depends
 from loguru import logger
 
-from src.api.tasks import process_setup_task
+from src.api.tasks import process_setup_task, process_download_all_setups_task
 from src.api.dependecies import get_httpx_client, get_speach_semaphore, get_gcs_bucket
-from src.api.utils import get_all_managers
 from src.settings import config, google_settings
 from src.utils import get_voice_info, VoiceCache
 from src.models import TaskPost, VideoSetup
@@ -63,32 +62,8 @@ async def update_voices(client=Depends(get_httpx_client)):
 @router.post("/process_media")
 async def post_process_media(
         task: TaskPost,
-        client=Depends(get_httpx_client),
-        semaphore=Depends(get_speach_semaphore),
-        bucket=Depends(get_gcs_bucket),
 ):
-    async with DirManager(task_uuid=task.uuid_) as dir_manager:
-        speach_manager, blocks_manager, storage_manager, processor = get_all_managers(
-            task, dir_manager.path, client, semaphore, bucket
-        )
-
-        successes_speach, failures_speach = await speach_manager.gather_tasks()
-        successes_blocks, failures_blocks = await blocks_manager.gather_tasks()
-
-        logger.debug(f"SUCCESS_SPEACH\n{successes_speach}\n")
-        logger.debug(f"failures_speach\n{failures_speach}\n")
-        for e in failures_speach:
-            logger.debug(f"\n{e}\n")
-
-        logger.debug(f"successes_blocks\n{successes_blocks}\n")
-        logger.debug(f"failures_blocks\n{failures_blocks}\n")
-        for e in failures_blocks:
-            logger.info(f"\n{e}\n")
-
-        video_setups: list[VideoSetup] = get_video_setups(
-            video_blocks=successes_blocks["video_blocks"],
-            audio_blocks=successes_blocks["audio_blocks"],
-            speach_blocks=list(successes_speach.values())
-        )
-        logger.debug(f"VIDEOS\n{video_setups}\n")
-
+    process_download_all_setups_task.run(
+        task_kwargs=task.model_dump(mode="json")
+    )
+    return Response(status_code=status.HTTP_202_ACCEPTED)

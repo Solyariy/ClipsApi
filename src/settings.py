@@ -23,6 +23,7 @@ class MainConfig(BaseSettings):
         list[dict[str, str]], "text and voice setups"
     ]
     CHUNKS_SIZE: int = 1024 * 128
+    PROCESSOR_BAR_TICK: int = 20
 
 
 class ElevenlabsSettings(BaseSettings):

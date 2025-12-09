@@ -10,7 +10,7 @@ from pydantic import (
 
 
 class TaskPost(BaseModel):
-    uuid_: UUID4 = Field(
+    uuid_: str = Field(
         default_factory=lambda: uuid.uuid4().hex
     )
     task_name: str

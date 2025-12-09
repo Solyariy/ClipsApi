@@ -12,12 +12,12 @@ from src.utils import get_url_info, get_extension
 class BlocksManager:
     def __init__(
             self,
-            path: Path,
+            path: str,
             video_blocks: config.BLOCKS,
             audio_blocks: config.BLOCKS,
             client: httpx.AsyncClient
     ):
-        self.path = path
+        self.path = Path(path)
         self.video_blocks = video_blocks
         self.audio_blocks = audio_blocks
         self.client = client
@@ -35,7 +35,7 @@ class BlocksManager:
                 iter_chunks = response.aiter_bytes(config.CHUNKS_SIZE)
                 async for chunk in iter_chunks:
                     await f.write(chunk)
-        return block_name, filename, extension
+        return block_name, str(filename), extension
 
     async def gather_tasks(self):
         tasks = [

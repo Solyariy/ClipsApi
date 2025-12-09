@@ -14,12 +14,12 @@ from src.utils import get_voice_info
 class TextToSpeechManager:
     def __init__(
             self,
-            path: Path,
+            path: str,
             text_to_speach: config.TEXT_TO_SPEACH,
             client: httpx.AsyncClient,
             semaphore: asyncio.Semaphore
     ):
-        self.path = path
+        self.path = Path(path)
         self.text_to_speach = {
             uuid.uuid4().hex: data
             for data in text_to_speach
@@ -48,7 +48,7 @@ class TextToSpeechManager:
                 text=text,
                 language_code="en",
                 model_id=elevenlabs_settings.MODEL_ID,
-                output_format=elevenlabs_settings.MODEL_ID,
+                output_format=elevenlabs_settings.OUTPUT_FORMAT,
                 voice_settings=VoiceSettings(
                     stability=0.0,
                     similarity_boost=1.0,
@@ -62,7 +62,7 @@ class TextToSpeechManager:
                 async for chunk in audio:
                     if chunk:
                         await f.write(chunk)
-            return task_id, filename
+            return task_id, str(filename)
 
     async def gather_tasks(self):
         tasks = [

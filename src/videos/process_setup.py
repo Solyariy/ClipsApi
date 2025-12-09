@@ -29,5 +29,6 @@ def process_setup(
             )
         except Exception as e:
             logger.warning(f"Error for setup: {setup.model_dump_json()}, error: {e}")
+            raise e
 
     return saved_url

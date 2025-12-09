@@ -16,9 +16,9 @@ from src.models import VideoSetup
 class VideoProcessor:
     def __init__(
             self,
-            path: Path,
+            path: str,
     ):
-        self.path = path
+        self.path = Path(path)
 
     @staticmethod
     def _validate_paths(setup: VideoSetup) -> None:

@@ -3,7 +3,12 @@ services:
   app:
     container_name: app
     build: .
-    command: bash -c "uv run uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload"
+    command: > 
+      bash -c 
+      "uv run uvicorn src.main:app 
+      --host 0.0.0.0 
+      --port 8000 
+      --reload"
     volumes:
       - ./src:/app/src
     ports:
@@ -16,10 +21,68 @@ services:
     container_name: redis
     image: redis:6.2-alpine
 
-  celery_worker:
-    container_name: celery_worker
+#  celery_worker:
+#    container_name: celery_worker
+#    build: .
+#    command: >
+#      bash -c
+#      "uv run celery
+#      -A src.api.celery_worker.celery_app worker
+#      --loglevel=info"
+#    volumes:
+#      - ./src:/app/src
+#    env_file:
+#      - .env
+#    depends_on:
+#      - app
+#      - redis
+
+  celery_worker_downloads:
+    container_name: celery_worker_downloads
     build: .
-    command: bash -c "uv run celery -A src.api.celery_worker.celery_app worker --loglevel=info"
+    command: >
+      bash -c
+      "uv run celery
+      -A src.api.celery_worker.celery_app worker
+      -Q downloads_queue
+      -c 1
+      --loglevel=info"
+    volumes:
+      - ./src:/app/src
+    env_file:
+      - .env
+    depends_on:
+      - app
+      - redis
+
+  celery_worker_grouper:
+    container_name: celery_worker_grouper
+    build: .
+    command: >
+      bash -c
+      "uv run celery
+      -A src.api.celery_worker.celery_app worker
+      -Q group_and_process_queue
+      -c 4
+      --loglevel=info"
+    volumes:
+      - ./src:/app/src
+    env_file:
+      - .env
+    depends_on:
+      - app
+      - redis
+
+  celery_worker_processing:
+    container_name: celery_worker_processing
+    build: .
+    command: >
+      bash -c
+      "uv run celery
+      -A src.api.celery_worker.celery_app worker
+      -Q video_processing_queue
+      -c 6
+      --loglevel=info"
     volumes:
       - ./src:/app/src
     env_file:
@@ -31,10 +94,16 @@ services:
   flower:
     container_name: flower
     build: .
-    command: bash -c "uv run celery -A src.api.celery_worker.celery_app flower --port=5555"
+    command: > 
+      bash -c 
+      "uv run celery 
+      -A src.api.celery_worker.celery_app flower 
+      --port=5555"
     ports:
       - "5556:5555"
     depends_on:
       - app
       - redis
-      - celery_worker
+      - celery_worker_grouper
+      - celery_worker_downloads
+      - celery_worker_processing
