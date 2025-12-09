@@ -38,11 +38,11 @@ class InterceptHandler(logging.Handler):
 
 
 for name in logging.root.manager.loggerDict:
-    if name in "uvicorn":
-        uvicorn_logger = logging.getLogger(name)
-        uvicorn_logger.handlers.clear()
-        uvicorn_logger.setLevel(logging.INFO)
-        uvicorn_logger.addHandler(InterceptHandler())
+    if name in ("uvicorn", "imageio", "imageio_ffmpeg"):
+        specific_logger = logging.getLogger(name)
+        specific_logger.handlers.clear()
+        specific_logger.setLevel(logging.INFO)
+        specific_logger.addHandler(InterceptHandler())
 
 
 @asynccontextmanager
@@ -53,10 +53,10 @@ async def lifespan(app: FastAPI):
         await download_voices_info(client=client)
         VoiceCache.load_voices()
         gcs_client = Client.from_service_account_json(
-            google_settings.GOOGLE_APPLICATION_CREDENTIALS
+            google_settings.CREDENTIALS_PATH
         )
         app.state.gcs_bucket = gcs_client.bucket(
-            google_settings.GOOGLE_STORAGE_BUCKET_NAME
+            google_settings.STORAGE_BUCKET_NAME
         )
         app.state.httpx_client = client
         app.state.speach_semaphore = asyncio.Semaphore(2)

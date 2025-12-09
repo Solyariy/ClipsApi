@@ -46,8 +46,8 @@ class CelerySettings(BaseSettings):
         extra="ignore"
     )
 
-    BROKER_URL: RedisDsn
-    RESULT_BACKEND: RedisDsn
+    BROKER_URL: str
+    RESULT_BACKEND: str
 
 
 class GoogleSettings(BaseSettings):

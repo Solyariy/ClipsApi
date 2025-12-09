@@ -1,4 +1,7 @@
+from os import PathLike
 from pathlib import Path
+import tempfile
+from loguru import logger
 
 from moviepy import (
     VideoFileClip,
@@ -7,13 +10,14 @@ from moviepy import (
     concatenate_videoclips, concatenate_audioclips,
 )
 
-from src.settings import config
 from src.models import VideoSetup
 
 
 class VideoProcessor:
-    def __init__(self, path: Path, video_setups: list[VideoSetup]):
-        self.setups = video_setups
+    def __init__(
+            self,
+            path: Path,
+    ):
         self.path = path
 
     @staticmethod
@@ -28,7 +32,7 @@ class VideoProcessor:
         if not Path(setup.speach_path).exists():
             raise FileNotFoundError(f"Speech not found: {setup.speach_path}")
 
-    def process_setup(self, setup: VideoSetup):
+    def process(self, save_to_path: PathLike, setup: VideoSetup) -> tempfile.NamedTemporaryFile:
         self._validate_paths(setup)
 
         clips = [VideoFileClip(path) for path in setup.clips_path]
@@ -47,11 +51,11 @@ class VideoProcessor:
         final_video = final_video.with_audio(composite_audio)
 
         final_video.write_videofile(
-            self.path,
-            codec='libx264',
-            audio_codec='aac',
-            temp_audiofile='temp-audio.m4a',
-            remove_temp=True
+            save_to_path,
+            codec="libx264",
+            audio_codec="aac",
+            temp_audiofile=self.path / f"temp_audio_{setup.uuid_}.m4a",
+            remove_temp=True,
         )
 
         for clip in clips:
@@ -59,24 +63,3 @@ class VideoProcessor:
         bg_audio.close()
         speech.close()
         final_video.close()
-
-    def start_processing(self):
-        for setup in self.setups:
-            self.process_setup(setup)
-
-
-if __name__ == "__main__":
-    setup = VideoSetup(
-        clips_path=(
-            config.TEMP_PATH / "fa06f67fe765436ab8029bb90799f901/block1_1.mp4",
-            config.TEMP_PATH / "fa06f67fe765436ab8029bb90799f901/block2_3.mp4",
-            config.TEMP_PATH / "fa06f67fe765436ab8029bb90799f901/block3_1.mp4",
-        ),
-        audio_path=config.TEMP_PATH / "fa06f67fe765436ab8029bb90799f901/audio1_1.mp3",
-        speach_path=config.TEMP_PATH / "fa06f67fe765436ab8029bb90799f901/be4b86b7dad84219864100027b48e7a7_Will.mp3",
-        text="asds",
-        voice="asdasd"
-    )
-
-    p = VideoProcessor(config.TEMP_PATH / "test_full_video_1.mp4", [setup])
-    p.start_processing()
