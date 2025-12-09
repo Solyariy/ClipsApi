@@ -10,29 +10,29 @@ from src.videos.storage_manager import StorageManager
 from src.videos.video_processor import VideoProcessor
 
 
-def get_all_managers(
+def get_all_managers_kwargs(
         task: TaskPost,
         path: PathLike,
         client: httpx.AsyncClient,
         semaphore: asyncio.Semaphore,
         bucket: Bucket
 ) -> tuple[TextToSpeechManager, BlocksManager, StorageManager, VideoProcessor]:
-    speach_manager = TextToSpeechManager(
+    speach_kwargs = dict(
         path=path,
         text_to_speach=task.text_to_speach,
         client=client,
         semaphore=semaphore
     )
-    blocks_manager = BlocksManager(
+    blocks_kwargs = dict(
         path=path,
         video_blocks=task.video_blocks,
         audio_blocks=task.audio_blocks,
         client=client
     )
-    storage_manager = StorageManager(
+    storage_kwargs = dict(
         bucket=bucket,
         base_folder="videos"
     )
-    processor = VideoProcessor(path)
+    processor_kwargs = dict(path=path)
 
-    return speach_manager, blocks_manager, storage_manager, processor
+    return speach_kwargs, blocks_kwargs, storage_kwargs, processor_kwargs
