@@ -45,7 +45,7 @@ services:
       "uv run celery
       -A src.api.celery_worker.celery_app worker
       -Q downloads_queue
-      -c 1
+      -c $DOWNLOADS_CPU
       --loglevel=info"
     volumes:
       - ./src:/app/src
@@ -63,7 +63,7 @@ services:
       "uv run celery
       -A src.api.celery_worker.celery_app worker
       -Q group_and_process_queue
-      -c 4
+      -c $GROUPER_CPU
       --loglevel=info"
     volumes:
       - ./src:/app/src
@@ -81,7 +81,7 @@ services:
       "uv run celery
       -A src.api.celery_worker.celery_app worker
       -Q video_processing_queue
-      -c 6
+      -c $PROCESSING_CPU
       --loglevel=info"
     volumes:
       - ./src:/app/src

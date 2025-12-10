@@ -1,7 +1,6 @@
 from os import PathLike
 from pathlib import Path
 import tempfile
-from loguru import logger
 
 from moviepy import (
     VideoFileClip,
@@ -56,6 +55,7 @@ class VideoProcessor:
             audio_codec="aac",
             temp_audiofile=self.path / f"temp_audio_{setup.uuid_}.m4a",
             remove_temp=True,
+            logger=None
         )
 
         for clip in clips:

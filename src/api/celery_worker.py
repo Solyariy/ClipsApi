@@ -14,6 +14,7 @@ task_queues = {
 }
 
 task_routes = {
+    "cleanup_dir_task": {"queue": "group_and_process_queue"},
     "download_files_task": {"queue": "downloads_queue"},
     "group_and_process_task": {"queue": "group_and_process_queue"},
     "process_setup_task": {"queue": "video_processing_queue"},
