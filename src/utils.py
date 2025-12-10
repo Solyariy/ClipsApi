@@ -1,9 +1,9 @@
 import json
 from itertools import chain
+from pathlib import Path
+from urllib.parse import urlparse
 
 from src.settings import config
-from urllib.parse import urlparse
-from pathlib import Path
 
 
 def flatten_blocks(blocks: config.BLOCKS):

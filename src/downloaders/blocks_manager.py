@@ -5,8 +5,7 @@ import aiofiles
 import httpx
 
 from src.settings import config
-
-from src.utils import get_url_info, get_extension
+from src.utils import get_extension, get_url_info
 
 
 class BlocksManager:

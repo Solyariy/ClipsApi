@@ -1,12 +1,12 @@
+import tempfile
 from pathlib import Path
 
 from google.cloud.storage import Client
 from loguru import logger
 
 from src.models import VideoSetup
-from src.videos.video_processor import VideoProcessor
 from src.videos.storage_manager import StorageManager
-import tempfile
+from src.videos.video_processor import VideoProcessor
 
 
 def process_setup(

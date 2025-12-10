@@ -1,15 +1,18 @@
 import asyncio
 import logging
+from contextlib import asynccontextmanager
+
 import httpx
+
 # import uvicorn
 from fastapi import FastAPI
-from loguru import logger
 from google.cloud.storage import Client
+from loguru import logger
+
+from src.api.main_router import router as main_router
+from src.downloaders.scripts import download_voices_info
 from src.settings import config, google_settings
 from src.utils import VoiceCache
-from contextlib import asynccontextmanager
-from src.downloaders.scripts import download_voices_info
-from src.api.main_router import router as main_router
 
 
 class InterceptHandler(logging.Handler):
@@ -53,7 +56,7 @@ async def lifespan(app: FastAPI):
         # )
         # app.state.httpx_client = client
         # app.state.speach_semaphore = asyncio.Semaphore(2)
-        yield
+    yield
         # gcs_client.close()
 
 

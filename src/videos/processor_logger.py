@@ -1,5 +1,7 @@
 from proglog import ProgressBarLogger
+
 from src.settings import config
+
 
 class ProcessorLogger(ProgressBarLogger):
     def callback(self, **changes):

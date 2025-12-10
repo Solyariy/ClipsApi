@@ -1,7 +1,11 @@
-from pydantic_settings import BaseSettings, SettingsConfigDict
-from pydantic import RedisDsn, FilePath
 from pathlib import Path
-from typing import Annotated, ClassVar, Literal
+from typing import Annotated, ClassVar
+
+from pydantic import FilePath
+from pydantic_settings import (
+    BaseSettings,
+    SettingsConfigDict,
+)
 
 
 class MainConfig(BaseSettings):

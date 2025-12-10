@@ -2,10 +2,9 @@ import uuid
 from os import PathLike
 
 from pydantic import (
-    UUID4,
     BaseModel,
     Field,
-    HttpUrl
+    HttpUrl,
 )
 
 

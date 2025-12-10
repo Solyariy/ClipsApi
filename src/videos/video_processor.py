@@ -1,12 +1,13 @@
+import tempfile
 from os import PathLike
 from pathlib import Path
-import tempfile
 
 from moviepy import (
-    VideoFileClip,
     AudioFileClip,
     CompositeAudioClip,
-    concatenate_videoclips, concatenate_audioclips,
+    VideoFileClip,
+    concatenate_audioclips,
+    concatenate_videoclips,
 )
 
 from src.models import VideoSetup

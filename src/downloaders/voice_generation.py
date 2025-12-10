@@ -3,11 +3,11 @@ import uuid
 from pathlib import Path
 
 import aiofiles
+import httpx
 from elevenlabs import VoiceSettings
 from elevenlabs.client import AsyncElevenLabs
-from src.settings import config, elevenlabs_settings
-import httpx
 
+from src.settings import config, elevenlabs_settings
 from src.utils import get_voice_info
 
 
@@ -37,32 +37,32 @@ class TextToSpeechManager:
             task_id: str,
     ):
         async with self.semaphore:
-            # voice_info = get_voice_info(voice)
-            # if elevenlabs_settings.MODEL_ID not in voice_info["model_ids"]:
-            #     raise ValueError(
-            #         f"Can't use model: {elevenlabs_settings.MODEL_ID} "
-            #         f"for this voice: {voice_info}"
-            #     )
-            # audio = self.elevenlabs.text_to_speech.stream(
-            #     voice_id=voice_info["voice_id"],
-            #     text=text,
-            #     language_code="en",
-            #     model_id=elevenlabs_settings.MODEL_ID,
-            #     output_format=elevenlabs_settings.OUTPUT_FORMAT,
-            #     voice_settings=VoiceSettings(
-            #         stability=0.0,
-            #         similarity_boost=1.0,
-            #         style=0.0,
-            #         use_speaker_boost=False,
-            #         speed=1.0,
-            #     ),
-            # )
-            # filename = self.path / f"{task_id}_{voice}.mp3"
-            # async with aiofiles.open(filename, "wb") as f:
-            #     async for chunk in audio:
-            #         if chunk:
-            #             await f.write(chunk)
-            return task_id, "src/temp/c0f9ad338610412a9deb33fd94026139/cd0e8eea4d2b418895dc58c8bc6beb69_Sarah.mp3"#str(filename)
+            voice_info = get_voice_info(voice)
+            if elevenlabs_settings.MODEL_ID not in voice_info["model_ids"]:
+                raise ValueError(
+                    f"Can't use model: {elevenlabs_settings.MODEL_ID} "
+                    f"for this voice: {voice_info}"
+                )
+            audio = self.elevenlabs.text_to_speech.stream(
+                voice_id=voice_info["voice_id"],
+                text=text,
+                language_code="en",
+                model_id=elevenlabs_settings.MODEL_ID,
+                output_format=elevenlabs_settings.OUTPUT_FORMAT,
+                voice_settings=VoiceSettings(
+                    stability=0.0,
+                    similarity_boost=1.0,
+                    style=0.0,
+                    use_speaker_boost=False,
+                    speed=1.0,
+                ),
+            )
+            filename = self.path / f"{task_id}_{voice}.mp3"
+            async with aiofiles.open(filename, "wb") as f:
+                async for chunk in audio:
+                    if chunk:
+                        await f.write(chunk)
+            return task_id, str(filename)
 
     async def gather_tasks(self):
         tasks = [

@@ -1,12 +1,15 @@
 from os import PathLike
-from google.cloud.storage import Bucket
 
-from src.downloaders import TextToSpeechManager, BlocksManager
+from google.cloud.storage import Bucket, Client
+
+from src.downloaders import (
+    BlocksManager,
+    TextToSpeechManager,
+)
 from src.models import TaskPost
+from src.settings import google_settings
 from src.videos.storage_manager import StorageManager
 from src.videos.video_processor import VideoProcessor
-from google.cloud.storage import Client
-from src.settings import google_settings
 
 
 def get_all_managers_kwargs(

@@ -1,20 +1,30 @@
 import asyncio
 import shutil
-from typing import Literal
 from time import perf_counter
+from typing import Literal
+
 import httpx
 from celery import chain, chord
 from loguru import logger
 
-from src.api.utils import get_all_managers_kwargs, get_gcs_bucket
-from src.downloaders import DirManager, TextToSpeechManager, BlocksManager
-from src.downloaders.download_all_files import download_all_files
-from src.models import VideoSetup, TaskPost
+from src.api.celery_worker import celery_app
+from src.api.utils import (
+    get_all_managers_kwargs,
+    get_gcs_bucket,
+)
+from src.downloaders import (
+    BlocksManager,
+    DirManager,
+    TextToSpeechManager,
+)
+from src.downloaders.download_all_files import (
+    download_all_files,
+)
+from src.models import TaskPost, VideoSetup
 from src.videos.combinations import get_video_setups
 from src.videos.process_setup import process_setup
 from src.videos.storage_manager import StorageManager
 from src.videos.video_processor import VideoProcessor
-from src.api.celery_worker import celery_app
 
 
 @celery_app.task(name="cleanup_dir_task")
